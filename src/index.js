@@ -1,21 +1,21 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
   Dimensions,
   Modal,
   DeviceEventEmitter,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-} from 'react-native';
-import PropTypes from 'prop-types';
+  KeyboardAvoidingView
+} from "react-native";
+import PropTypes from "prop-types";
 import {
   View,
   initializeRegistryWithDefinitions,
   registerAnimation,
-  createAnimation,
-} from 'react-native-animatable';
-import * as ANIMATION_DEFINITIONS from './animations';
+  createAnimation
+} from "react-native-animatable";
+import * as ANIMATION_DEFINITIONS from "./animations";
 
-import styles from './index.style.js';
+import styles from "./index.style.js";
 
 // Override default animations
 initializeRegistryWithDefinitions(ANIMATION_DEFINITIONS);
@@ -26,7 +26,7 @@ const makeAnimation = (name, obj) => {
 };
 
 const isObject = obj => {
-  return obj !== null && typeof obj === 'object';
+  return obj !== null && typeof obj === "object";
 };
 
 export class ReactNativeModal extends Component {
@@ -47,16 +47,16 @@ export class ReactNativeModal extends Component {
     onBackButtonPress: PropTypes.func,
     onBackdropPress: PropTypes.func,
     useNativeDriver: PropTypes.bool,
-    style: PropTypes.any,
+    style: PropTypes.any
   };
 
   static defaultProps = {
-    animationIn: 'slideInUp',
+    animationIn: "slideInUp",
     animationInTiming: 300,
-    animationOut: 'slideOutDown',
+    animationOut: "slideOutDown",
     animationOutTiming: 300,
     avoidKeyboard: false,
-    backdropColor: 'black',
+    backdropColor: "black",
     backdropOpacity: 0.7,
     backdropTransitionInTiming: 300,
     backdropTransitionOutTiming: 300,
@@ -65,7 +65,7 @@ export class ReactNativeModal extends Component {
     isVisible: false,
     onBackdropPress: () => null,
     onBackButtonPress: () => null,
-    useNativeDriver: false,
+    useNativeDriver: false
   };
 
   // We use an internal state for keeping track of the modal visibility: this allows us to keep
@@ -75,8 +75,8 @@ export class ReactNativeModal extends Component {
   // device rotation.
   state = {
     isVisible: false,
-    deviceWidth: Dimensions.get('window').width,
-    deviceHeight: Dimensions.get('window').height,
+    deviceWidth: Dimensions.get("window").width,
+    deviceHeight: Dimensions.get("window").height
   };
 
   transitionLock = null;
@@ -108,20 +108,25 @@ export class ReactNativeModal extends Component {
     if (this.state.isVisible) {
       this._open();
     }
-    DeviceEventEmitter.addListener('didUpdateDimensions', this._handleDimensionsUpdate);
+    DeviceEventEmitter.addListener(
+      "didUpdateDimensions",
+      this._handleDimensionsUpdate
+    );
   }
 
   componentWillUnmount() {
-    DeviceEventEmitter.removeListener('didUpdateDimensions', this._handleDimensionsUpdate);
+    DeviceEventEmitter.removeListener(
+      "didUpdateDimensions",
+      this._handleDimensionsUpdate
+    );
   }
 
   componentDidUpdate(prevProps, prevState) {
     // On modal open request, we slide the view up and fade in the backdrop
     if (this.props.isVisible && !prevProps.isVisible) {
       this._open();
-    }
-    // On modal close request, we slide the view down and fade out the backdrop
-    else if (!this.props.isVisible && prevProps.isVisible) {
+    } else if (!this.props.isVisible && prevProps.isVisible) {
+      // On modal close request, we slide the view down and fade out the backdrop
       this._close();
     }
   }
@@ -132,13 +137,13 @@ export class ReactNativeModal extends Component {
     let animationOut = props.animationOut;
 
     if (isObject(animationIn)) {
-      makeAnimation('animationIn', animationIn);
-      animationIn = 'animationIn';
+      makeAnimation("animationIn", animationIn);
+      animationIn = "animationIn";
     }
 
     if (isObject(animationOut)) {
-      makeAnimation('animationOut', animationOut);
-      animationOut = 'animationOut';
+      makeAnimation("animationOut", animationOut);
+      animationOut = "animationOut";
     }
 
     this.animationIn = animationIn;
@@ -147,26 +152,29 @@ export class ReactNativeModal extends Component {
 
   _handleDimensionsUpdate = dimensionsUpdate => {
     // Here we update the device dimensions in the state if the layout changed (triggering a render)
-    const deviceWidth = Dimensions.get('window').width;
-    const deviceHeight = Dimensions.get('window').height;
-    if (deviceWidth !== this.state.deviceWidth || deviceHeight !== this.state.deviceHeight) {
+    const deviceWidth = Dimensions.get("window").width;
+    const deviceHeight = Dimensions.get("window").height;
+    if (
+      deviceWidth !== this.state.deviceWidth ||
+      deviceHeight !== this.state.deviceHeight
+    ) {
       this.setState({ deviceWidth, deviceHeight });
     }
   };
 
   _open = () => {
     if (this.transitionLock) return;
+    console.log(`BACKDROP REF WITHIN OPEN:`, this.backdropRef);
     this.transitionLock = true;
     this.backdropRef.transitionTo(
       { opacity: this.props.backdropOpacity },
-      this.props.backdropTransitionInTiming,
+      this.props.backdropTransitionInTiming
     );
     this.contentRef[this.animationIn](this.props.animationInTiming).then(() => {
       this.transitionLock = false;
       if (!this.props.isVisible) {
         this._close();
-      }
-      else {
+      } else {
         this.props.onModalShow();
       }
     });
@@ -174,18 +182,28 @@ export class ReactNativeModal extends Component {
 
   _close = () => {
     if (this.transitionLock) return;
+
+    console.log(`BACKDROP REF:`, this.backdropRef);
     this.transitionLock = true;
-    this.backdropRef.transitionTo({ opacity: 0 }, this.props.backdropTransitionOutTiming);
-    this.contentRef[this.animationOut](this.props.animationOutTiming).then(() => {
-      this.transitionLock = false;
-      if (this.props.isVisible) {
-        this._open();
+
+    console.log(`BACKDROP REF 2:`, this.backdropRef);
+    this.backdropRef.transitionTo(
+      { opacity: 0 },
+      this.props.backdropTransitionOutTiming
+    );
+
+    console.log(`BACKDROP REF 3:`, this.backdropRef);
+    this.contentRef[this.animationOut](this.props.animationOutTiming).then(
+      () => {
+        this.transitionLock = false;
+        if (this.props.isVisible) {
+          this._open();
+        } else {
+          this.setState({ isVisible: false });
+          this.props.onModalHide();
+        }
       }
-      else {
-        this.setState({ isVisible: false });
-        this.props.onModalHide();
-      }
-    });
+    );
   };
 
   render() {
@@ -213,14 +231,18 @@ export class ReactNativeModal extends Component {
     const computedStyle = [
       { margin: deviceWidth * 0.05, transform: [{ translateY: 0 }] },
       styles.content,
-      style,
+      style
     ];
 
     const containerView = (
       <View
-        ref={ref => (this.contentRef = ref)}
+        ref={ref => {
+          if (!this.contentRef) {
+            this.contentRef = ref;
+          }
+        }}
         style={computedStyle}
-        pointerEvents={'box-none'}
+        pointerEvents={"box-none"}
         useNativeDriver={useNativeDriver}
         {...otherProps}
       >
@@ -231,30 +253,34 @@ export class ReactNativeModal extends Component {
     return (
       <Modal
         transparent={true}
-        animationType={'none'}
+        animationType={"none"}
         visible={this.state.isVisible}
         onRequestClose={onBackButtonPress}
         {...otherProps}
       >
         <TouchableWithoutFeedback onPress={onBackdropPress}>
           <View
-            ref={ref => (this.backdropRef = ref)}
+            ref={ref => {
+              if (!this.backdropRef) {
+                this.backdropRef = ref;
+              }
+            }}
             useNativeDriver={useNativeDriver}
             style={[
               styles.backdrop,
               {
                 backgroundColor: backdropColor,
                 width: deviceWidth,
-                height: deviceHeight,
-              },
+                height: deviceHeight
+              }
             ]}
           />
         </TouchableWithoutFeedback>
 
         {avoidKeyboard && (
           <KeyboardAvoidingView
-            behavior={'padding'}
-            pointerEvents={'box-none'}
+            behavior={"padding"}
+            pointerEvents={"box-none"}
             style={computedStyle.concat([{ margin: 0 }])}
           >
             {containerView}
